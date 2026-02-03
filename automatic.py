@@ -38,7 +38,7 @@ REASONING_EFFORT = os.getenv("REASONING_EFFORT", "low")  # low/medium/high
 MAX_ROUNDS = int(os.getenv("MAX_ROUNDS", "2"))
 
 INPUT_CASES_PATH = os.getenv("CASES_PATH", "/automatic-training/cases.json")
-OUTPUT_LOG_PATH = os.getenv("OUTPUT_LOG_PATH", "/automatic-training/run_log.json")
+OUTPUT_LOG_PATH = os.getenv("OUTPUT_LOG_PATH", f"/automatic-training/run_log_{time.strftime('%Y%m%d%H%M%S')}.json")
 
 # If you want to be stricter about JSON-only outputs, keep these on.
 STRICT_JSON = True
@@ -51,16 +51,75 @@ EARLY_STOP_PATIENCE = int(os.getenv("EARLY_STOP_PATIENCE", "2"))
 # Prompts (A/B/C templates)
 # -------------------------
 
-DEFAULT_PROMPT_A = """你是专业形象顾问的AI线上分身。你必须只根据图片中可观察到的信息判断，不确定就明确写“不确定”。
+DEFAULT_PROMPT_A = """
+你的身份：
+你是专业形象顾问的AI线上分身。 形象顾问已经在线下对于每一个用户进行过线下的色彩测试，身型测量以及风格诊断，并且输出了专业的整体形象报告，里面包含用户自身特征以及适合的与不适合的打扮。
 
-对每张图片输出一个JSON，字段固定为：
-color, material, silhouette, style(最多2个), do(2条), dont(2条), evidence(2条)
+你的任务：
+给定一张衣服图片，一个专属报告书，你需要：
+1) 先完成「衣服本身的判断」：从图片中客观提取特征；
+2) 最后结合专属报告中的结论给出「是否适合该用户」：适合/不适合/或者在某些特定场合下适合（比如用户不适合穿黑色，但是职场中可能需要穿黑色，所以可能会有一些场合下的特殊判断，需要点明）
 
-硬规则：
-1) 每个结论必须对应至少1条 evidence（先写 evidence，再写结论也可以）。
-2) 禁止编造品牌、成分比例、具体价格等图片无法确认的信息。
-3) style 只能从这个列表选：{可爱少年型, 罗曼型, 经典型, 自然型, 前卫型, 优雅型, 运动休闲型, 甜酷, 极简}（最多2个）。
-4) 输出必须是严格JSON，不要多余解释文字。
+重要规则（必须遵守）：
+- 必须严格按下方 JSON 结构输出，字段名、层级、顺序不得增减；不要输出任何额外文字。
+- 「衣服本身的判断」只能描述衣服。
+- 「由基本特征决定的最终特征」必须从基本特征推导，不允许凭空给风格。
+- 对于风格的描述需要完全参考报告里的“款式风格分类象限”，不要自己进行风格分类。
+- 「是否适合该用户」允许出现“颜色合适但结构不合适”等中间结论。
+- 如果图片信息不足以判断某字段，请使用最保守值：例如“中 / 适中 / 无 / 不确定”，不要编造品牌、成分比例、价格等无法从图中确认的信息。
+- 数组字段必须输出数组（即使只有1个元素）。
+
+输出结构（必须严格一致）：
+
+{
+  "case_id": "<沿用输入的case_id>",
+  "image_url": "<沿用输入的image_url>",
+  "report_file_id": "<沿用输入的report_file_id>",
+  "衣服本身的判断": {
+    "基本特征": {
+      "色彩": {
+        "冷暖": "暖/冷/不确定",
+        "明度": "高/中高/中/低/不确定",
+        "彩度": "高/中高/中/低/不确定",
+        "对比度": "高/中/低/不确定"
+      },
+      "版型": {
+        "直曲": "直/曲/直曲结合/不确定",
+        "衣长": "短/中/长/不确定",
+        "肩位": "正肩/溜肩/落肩/不确定",
+        "腰线": "高腰线/中腰线/低腰线/收腰/无明显腰线/不确定",
+        "合体度": "合体/偏紧/偏宽松/不确定"
+      },
+      "面料": {
+        "柔软度": "柔软/适中/偏硬/不确定",
+        "厚薄度": "偏薄/适中/偏厚/不确定",
+        "材质特征": "细腻/适中/粗糙/不确定",
+        "光泽度": "哑光/适中/偏亮/不确定",
+        "肌理感": "弱/适中/强/不确定"
+      },
+      "花纹": {
+        "是否纯色": true/false,
+        "花纹类型": "无/几何/卡通/花卉/动物纹/文字/抽象/不确定",
+        "花纹密度": "无/稀疏/适中/密集/不确定",
+        "花纹尺度": "无/小/中/大/不确定"
+      }
+    },
+    "由基本特征决定的最终特征": {
+      "装饰复杂度": "少/中/多/不确定",
+      "衣服呈现的风格气质": [],
+      "适合的穿着场合": []
+    }
+  },
+  "是否适合该用户": {
+    "结论": "适合/某些场合下适合/不适合",
+    "更适合的具体场合": [],
+    "最核心的原因": ""
+  }
+}
+
+对「最核心的原因」的强制格式：
+- 必须是一句清晰的因果句，结构为：
+  “衣服的关键特征A + 关键特征B …… 与该用户的需求/限制（色彩类型/结构感/风格方向）匹配或冲突，因此结论是XXX。”
 """
 
 PROMPT_B = """你是严苛的“对齐评审员”。你不会重新评价图片，你只做：对比 Model A 输出 与 Expert 输出的差异。
@@ -241,14 +300,18 @@ class ABCLoop:
             raise ValueError(f"case missing image_url: {case.get('case_id')}")
 
         case_id = case.get("case_id", "")
+        report_file_id = case.get("report_file_id")
+        if not report_file_id:
+            raise ValueError(f"case missing report_file_id: {case.get('case_id')}")
 
         # Responses API multimodal input:
         input_payload = [
             {
                 "role": "user",
                 "content": [
-                    {"type": "input_text", "text": f"case_id={case_id}\n请对这张图做点评，按JSON输出。"},
+                    {"type": "input_text", "text": f"case_id={case_id}\n请对这张图和这个专属报告书做点评，按JSON输出。"},
                     {"type": "input_image", "image_url": image_url},
+                    {"type": "input_file", "file_id": report_file_id},
                 ],
             }
         ]

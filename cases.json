@@ -1,6 +1,7 @@
 [{
     "case_id": "001",
     "image_url": "https://res.cloudinary.com/ddjbilqmd/image/upload/v1769508777/user_0004/sxbkuurfuu24f6blsnqq.jpg",
+    "report_file_id": "file-BWmsnPg86TWKgUXE9twXu7",
     "expert":{
     "衣服本身的判断": {
       "基本特征": {
@@ -33,7 +34,7 @@
       },
       "由基本特征决定的最终特征": {
         "装饰复杂度": "少",
-        "衣服呈现的风格气质": ["少女感", "甜美感", "可爱感"],
+        "衣服呈现的风格气质": ["少女的"],
         "适合的穿着场合": ["休闲"]
       }
     },

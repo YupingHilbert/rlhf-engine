@@ -1,0 +1,31 @@
+{
+  "meta": {
+    "created_at": "2026-02-02T09:23:04Z",
+    "updated_at": "2026-02-02T09:23:39Z",
+    "format_version": "1.0"
+  },
+  "files": [
+    {
+      "relpath": "VIP形象咨询报告（韩森森）.pdf",
+      "abspath": "/automatic-training/pdfs/VIP形象咨询报告（韩森森）.pdf",
+      "filename": "VIP形象咨询报告（韩森森）.pdf",
+      "sha256": "458500d13e66e4fae6da845df55315d77d546be7400975a9d29e9a06ef1ff975",
+      "size_bytes": 13344616,
+      "mtime_unix": 1770023653,
+      "purpose": "user_data",
+      "file_id": "file-NU9arQHpHJdo4NyK9xHy6d",
+      "uploaded_at": "2026-02-02T09:23:18Z"
+    },
+    {
+      "relpath": "嘉欣（VIP形象报告）.pdf",
+      "abspath": "/automatic-training/pdfs/嘉欣（VIP形象报告）.pdf",
+      "filename": "嘉欣（VIP形象报告）.pdf",
+      "sha256": "c946c71369b9b8dd33e58352f05129f630ff1c16d7d135127cf4850a3ced2c4e",
+      "size_bytes": 21140601,
+      "mtime_unix": 1770023484,
+      "purpose": "user_data",
+      "file_id": "file-BWmsnPg86TWKgUXE9twXu7",
+      "uploaded_at": "2026-02-02T09:23:39Z"
+    }
+  ]
+}
